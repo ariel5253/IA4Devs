@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Persona {
+  id        Int       @id @default(autoincrement())
+  nombre    String
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  usuarios  Usuario[]
+}
+
+model Rol {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique
+  descripcion String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  usuarios    Usuario[]
+  modulos     ModuloRol[]
+  permisos    Permiso[]
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  personaId Int
+  persona   Persona  @relation(fields: [personaId], references: [id])
+  rolId     Int
+  rol       Rol      @relation(fields: [rolId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Modulo {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique
+  descripcion String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  vistas      Vista[]
+  roles       ModuloRol[]
+}
+
+model Vista {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @unique
+  ruta      String
+  moduloId  Int
+  modulo    Modulo   @relation(fields: [moduloId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  acciones   AccionVista[]
+}
+
+model ModuloRol {
+  id        Int      @id @default(autoincrement())
+  moduloId  Int
+  modulo    Modulo   @relation(fields: [moduloId], references: [id])
+  rolId     Int
+  rol       Rol      @relation(fields: [rolId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([moduloId, rolId])
+}
+
+model AccionVista {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  vistaId   Int
+  vista     Vista    @relation(fields: [vistaId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  permisos  Permiso[]
+}
+
+model Permiso {
+  id            Int         @id @default(autoincrement())
+  accionVistaId Int
+  accionVista   AccionVista @relation(fields: [accionVistaId], references: [id])
+  rolId         Int
+  rol           Rol         @relation(fields: [rolId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([accionVistaId, rolId])
+} 
